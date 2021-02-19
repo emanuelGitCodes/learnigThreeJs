@@ -1,5 +1,6 @@
 
 let boxDimensions = 5; // length of one side
+let numberOfLights = 5;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xcccccc);
@@ -7,7 +8,7 @@ scene.background = new THREE.Color(0xcccccc);
 const camera = new THREE.PerspectiveCamera(
   45,
   window.innerWidth / window.innerHeight,
-  0.1,
+  1,
   2000
 );
 camera.position.set(0, 0, boxDimensions * 3);
@@ -31,49 +32,37 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 // scene.add(ambientLight);
 
 // Point light
-// Reduce code using loop
-const light = [];
-light[0] = new THREE.PointLight(0xffffff, 1.2, 100);
-light[1] = new THREE.PointLight(0xffffff, 1.2, 100);
-light[2] = new THREE.PointLight(0xffffff, 1.2, 100);
-light[3] = new THREE.PointLight(0xffffff, 1.2, 100);
-light[4] = new THREE.PointLight(0xffffff, 1.2, 100);
-light[5] = new THREE.PointLight(0xffffff, 1.2, 100);
+const lights = [numberOfLights];
 
-light[0].castShadow = true;
-light[1].castShadow = true;
-light[2].castShadow = true;
-light[3].castShadow = true;
-light[4].castShadow = true;
-light[5].castShadow = true;
+for (index = 0; index <= numberOfLights; index++) {
+  lights[index] = new THREE.PointLight(0xffffff, 1.2, 100);
+  lights[index].castShadow = true;
+}
+
+for (index = 0; index <= numberOfLights; index++) {
+  scene.add(lights[index]);
+}
 
 // Top 3 lights
-light[0].position.set(8, 8, 0);
-light[1].position.set(-5, 8, -8);
-light[2].position.set(-5, 8, 8);
+lights[0].position.set(8, 8, 0);
+lights[1].position.set(-5, 8, -8);
+lights[2].position.set(-5, 8, 8);
 
 // // Bottom 3 lights
-light[3].position.set(8, -8, 0);
-light[4].position.set(-5, -8, -8);
-light[5].position.set(-5, -8, 8);
-
-scene.add(light[0]);
-scene.add(light[1]);
-scene.add(light[2]);
-scene.add(light[3]);
-scene.add(light[4]);
-scene.add(light[5]);
+lights[3].position.set(8, -8, 0);
+lights[4].position.set(-5, -8, -8);
+lights[5].position.set(-5, -8, 8);
 
 // dynamic moving lighting
 function dynamicLighting() {
   var time = Date.now() * 0.0005;
-  light[0].position.x = Math.sin(time * 0.7) * 30;
-  light[0].position.y = Math.cos(time * 0.5) * 40;
-  light[0].position.z = Math.cos(time * 0.3) * 30;
+  lights[0].position.x = Math.sin(time * 0.7) * 30;
+  lights[0].position.y = Math.cos(time * 0.5) * 40;
+  lights[0].position.z = Math.cos(time * 0.3) * 30;
 
-  light[1].position.x = Math.cos(time * 0.3) * 30;
-  light[1].position.y = Math.sin(time * 0.5) * 40;
-  light[1].position.z = Math.sin(time * 0.7) * 30;
+  lights[1].position.x = Math.cos(time * 0.3) * 30;
+  lights[1].position.y = Math.sin(time * 0.5) * 40;
+  lights[1].position.z = Math.sin(time * 0.7) * 30;
 }
 
 // Add img to obj
@@ -94,10 +83,11 @@ cube.castShadow = true;
 cube.receiveShadow = false;
 scene.add(cube);
 
+
 const animate = function () {
   requestAnimationFrame(animate);
   cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
+  // cube.rotation.y += 0.01;
   // cube.rotation.z += 0.01;
 
   dynamicLighting();
