@@ -18,9 +18,23 @@ manager.onProgress = function (item, loaded, total) {
 	console.log(item, loaded, total);
 };
 
+const loader = new THREE.OBJLoader(manager);
 const textureLoader = new THREE.TextureLoader(manager);
 const texture = textureLoader.load('/assets/vroom/Renders/Audi_R8_2017.1.png');
-const loader = new THREE.OBJLoader(manager);
+// const texture2 = textureLoader.load('/assets/vroom/Renders/Audi_R8_2017.2.png');
+
+// let texture = new Array(5).fill(0).map((_, index) => {
+// 	return textureLoader.load('/assets/vroom/Renders/Audi_R8_2017.' + index + '.png');
+// })
+
+// const texture = [
+// 	textureLoader.loadAsync('/assets/vroom/Renders/Audi_R8_2017.1.png'),
+// 	textureLoader.loadAsync('/assets/vroom/Renders/Audi_R8_2017.2.png'),
+// 	textureLoader.loadAsync('/assets/vroom/Renders/Audi_R8_2017.5.png'),
+// 	textureLoader.loadAsync('/assets/vroom/Renders/Audi_R8_2017.7.png'),
+// 	textureLoader.loadAsync('/assets/vroom/Renders/Audi_R8_2017.9.png')
+// ];
+
 
 function init() {
 	var gui = new dat.GUI();
@@ -70,10 +84,6 @@ function init() {
 		onProgress,
 		onError
 	);
-
-
-
-
 
 	//////////////////////////////////////////////////////////////////////
 
@@ -131,8 +141,11 @@ function getDirectionalLight(intensity) {
 
 function loadModel() {
 	object.traverse(function (child) {
-		if (child.isMesh)
+		if (child.isMesh) {
+			// printShotgun(child);
 			child.material.map = texture;
+
+		}
 	});
 
 	object.position.x = 0;
