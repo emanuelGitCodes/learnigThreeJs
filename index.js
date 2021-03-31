@@ -1,146 +1,230 @@
 
-const sceneTransparentColor = 0x000000
-const setAntialias = true;
+// Namespace('Labeling').Draw3D = ((() =>
+// ({
+draw3DLine() {
 
-const cameraAxisX = 0;
-const cameraAxisY = 0;
-const cameraAxisZ = 5;
+  const canvas = document.getElementById('board');
 
-const numberOfLights = 2
-const lights = [numberOfLights];
-const lightCastShadow = true;
-var lightColor = 0xffffff;
+  const setAntialias = false;
+  const showWireframe = false;
+  const shapeShadows = false;
+  const sceneTransparentColor = 0x000000;
 
-const showWireframe = false;
-const shapeShadows = true;
+  const coneRadius = 1;
+  const coneHeight = 2;
+  const coneRadialSegments = 6;
+  const coneHeightSegments = 6;
+  const coneColor = 0xffffff;
 
-const coneRadius = .8;
-const coneHeight = 1.5;
-const coneRadialSegments = 4;
-const coneHeightSegments = 128;
-const coneColor = 0x00cccc;
-var coneAxisX = -2.5;
-var coneAxisY = 0;
-var coneAxisZ = 0;
-var coneRotateX = Math.PI / 2;
-var coneRotateY = 0;
-var coneRotateZ = Math.PI / 2;
+  const cylinderRadius = .5;
+  const cylinderRadialSegments = 4;
+  const cylinderHeightSegments = 4;
+  const cylinderColor = 0xffffff;
 
-const rectangleWidth = .6;
-var rectangleHeight = 4;
-const rectangleLength = .6;
-const rectangleColor = 0x00cccc;
-var rectangleAxisX = 0;
-var rectangleAxisY = 0;
-var rectangleAxisZ = 0;
-var rectangleRotateX = Math.PI / 2;
-var rectangleRotateY = 0;
-var rectangleRotateZ = 0;
+  let numberOfLights = 2
+  let numberOfArrows = 4
 
-const cylinderRadius = .3;
-var cylinderLength = 4;
-const cylinderRadialSegments = 16;
-const cylinderHeightSegments = 16;
-const cylinderColor = 0x00cc00;
-var cylinderAxisX = 0;
-var cylinderAxisY = -1;
-var cylinderAxisZ = 0;
-var cylinderRotateX = 0;
-var cylinderRotateY = 0;
-var cylinderRotateZ = 0;
+  function init() {
+    var lights = [numberOfLights];
+    var lightCastShadow = true;
+    var lightColor = 0xffffff;
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xcccccc);
+    var coneAxisX = -2.5;
+    var coneAxisY = 0;
+    var coneAxisZ = 0;
+    var coneRotateX = Math.PI / 2;
+    var coneRotateY = 0;
+    var coneRotateZ = Math.PI / 2;
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(cameraAxisX, cameraAxisY, cameraAxisZ);
+    var cylinderLength = 6;
+    var cylinderAxisX = 0;
+    var cylinderAxisY = -1;
+    var cylinderAxisZ = 0;
+    var cylinderRotateX = 0;
+    var cylinderRotateY = 0;
+    var cylinderRotateZ = 0;
 
-const renderer = new THREE.WebGLRenderer({ antialias: setAntialias, alpha: true });
-renderer.setClearColor(sceneTransparentColor, 0);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-// const canvas =
-// 	document.getElementById('board').appendChild(renderer.domElement);
-// canvas.setAttribute('id', '3D');
-document.body.appendChild(renderer.domElement);
+    var scene = new THREE.Scene();
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // Add Light environment
+    var light = getDirectionalLight(1);
+    light.name = 'directionalLight';
+    light.position.set(0, 0, 15);
+    scene.add(light);
 
-// Light Environment ********************************************************************
+    // Call SHAPES to be generated
+    var cylinder = getCylinder(cylinderRadius, cylinderLength, cylinderRadialSegments, cylinderHeightSegments, cylinderColor);
+    var cone = getCone(coneRadius, coneHeight, coneRadialSegments, coneHeightSegments, coneColor);
+    cylinder.add(cone);
+    cylinder.name = 'arrow';
+    cylinder.position.set(14, -5, 0);
+    cone.rotation.y += .3;
 
-for (index = 0; index <= numberOfLights; index++) {
-  lights[index] = new THREE.PointLight(lightColor, 1.2, 100);
-  lights[index].position.set(
-    Math.floor(Math.random() * Math.floor(11)),
-    Math.floor(Math.random() * Math.floor(11)),
-    Math.floor(Math.random() * Math.floor(11)),
-  );
-  lights[index].castShadow = lightCastShadow;
-  scene.add(lights[index]);
-}
-
-function dynamicLighting() {
-  var time = Date.now() * 0.0005;
-  for (index = 0; index <= numberOfLights; index++) {
-    if ((index % 2) == 0) {
-      lights[index].position.x = Math.sin(time * 0.7) * 30;
-      lights[index].position.y = Math.cos(time * 0.5) * 40;
-      lights[index].position.z = Math.cos(time * 0.3) * 30;
+    // SHAPE POINTING DIRECTION /////////////////////////////////////////////
+    if (cylinder.position.y >= 0) {
+      cone.position.y = cylinder.geometry.parameters.height / 1.7;
+    } else if (cylinder.position.y < 0) {
+      cone.rotation.z += Math.PI;
+      cone.position.y = -cylinder.geometry.parameters.height / 1.7; // Positive Y
+    } else {
+      cone.position.y = cylinder.geometry.parameters.height / 1.7; // Positive Y
     }
 
-    if ((index % 2) != 0) {
-      lights[index].position.x = Math.cos(time * 0.3) * 30;
-      lights[index].position.y = Math.sin(time * 0.5) * 40;
-      lights[index].position.z = Math.sin(time * 0.7) * 30;
+    var arrow = scene.getObjectByName('arrow');
+
+    var arrowList = generateArrows(numberOfArrows, cylinderLength);
+    console.log(arrowList);
+
+    for (var index = 0; index < numberOfArrows; index++) {
+      scene.add(arrowList[index]);
     }
+
+    scene.add(cylinder);
+
+    // var child = arrow.children[0].geometry.parameters.height;
+    // printShotgun(child);
+
+    var cameraDimensions = 15;
+    var camera = new THREE.OrthographicCamera(
+      -cameraDimensions,
+      cameraDimensions,
+      cameraDimensions,
+      -cameraDimensions,
+      1,
+      1000
+    );
+    camera.position.set(0, 0, 2);
+
+    var renderer = new THREE.WebGLRenderer({ antialias: setAntialias, alpha: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.setSize(canvas.offsetWidth - 1, canvas.offsetHeight - 1);
+    canvas.appendChild(renderer.domElement);
+
+    animate(renderer, scene, camera, light);
   }
-}
 
-// SHAPES *******************************************************************************
-const cone = new THREE.Mesh(
-  new THREE.ConeGeometry(coneRadius, coneHeight, coneRadialSegments, coneHeightSegments),
-  new THREE.MeshLambertMaterial({ color: coneColor, wireframe: showWireframe })
-);
-cone.castShadow = true;
-cone.receiveShadow = shapeShadows;
-cone.position.set(coneAxisX, coneAxisY, coneAxisZ);
-cone.rotation.x += coneRotateX;
-cone.rotation.y += coneRotateY;
-cone.rotation.z += coneRotateZ;
+  function getBox(rectangleWidth, rectangleHeight, rectangleLength, rectangleColor) {
+    var mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(rectangleWidth, rectangleHeight, rectangleLength),
+      new THREE.MeshPhongMaterial({ color: rectangleColor, wireframe: showWireframe, }),
+    );
 
-const rectangle = new THREE.Mesh(
-  new THREE.BoxGeometry(rectangleWidth, rectangleHeight, rectangleLength),
-  new THREE.MeshLambertMaterial({ color: rectangleColor, wireframe: showWireframe })
-);
-rectangle.castShadow = true;
-rectangle.receiveShadow = shapeShadows;
-rectangle.position.set(rectangleAxisX, rectangleAxisY, rectangleAxisZ);
-rectangle.rotation.z += rectangleRotateX;
-rectangle.rotation.y += rectangleRotateY;
-rectangle.rotation.z += rectangleRotateZ;
+    mesh.castShadow = true;
+    return mesh;
+  }
 
-const cylinder = new THREE.Mesh(
-  new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, cylinderLength, cylinderRadialSegments, cylinderHeightSegments),
-  new THREE.MeshLambertMaterial({ color: cylinderColor, wireframe: showWireframe }),
-);
-cylinder.castShadow = true;
-cylinder.receiveShadow = shapeShadows;
-cylinder.position.set(cylinderAxisX, cylinderAxisY, cylinderAxisZ);
-cylinder.rotation.x += cylinderRotateX;
-cylinder.rotation.y += cylinderRotateY;
-cylinder.rotation.z += cylinderRotateZ;
+  function getCylinder(cylinderRadius, cylinderLength, cylinderRadialSegments, cylinderHeightSegments, cylinderColor) {
+    var mesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, cylinderLength, cylinderRadialSegments, cylinderHeightSegments),
+      new THREE.MeshPhongMaterial({ color: cylinderColor, wireframe: showWireframe, }),
+    );
 
-const arrow = new THREE.Group();
-arrow.add(cone);
-arrow.add(rectangle);
-arrow.add(cylinder);
-scene.add(arrow);
+    mesh.castShadow = true;
+    return mesh;
+  }
 
-// FUNCTIONS CALLS **********************************************************************
-const animate = function () {
-  requestAnimationFrame(animate);
-  dynamicLighting();
-  renderer.render(scene, camera);
-};
+  function getCone(coneRadius, coneHeight, coneRadialSegments, coneHeightSegments, coneColor) {
+    var mesh = new THREE.Mesh(
+      new THREE.ConeGeometry(coneRadius, coneHeight, coneRadialSegments, coneHeightSegments),
+      new THREE.MeshPhongMaterial({ color: coneColor, wireframe: showWireframe, }),
+    );
 
-animate();
+    mesh.castShadow = true;
+    return mesh;
+  }
+
+  function generateArrows(numberOfArrows, cylinderLength) {
+    var arrowList = [numberOfArrows];
+
+    for (var index = 0; index < numberOfArrows; index++) {
+      arrowList[index] = getCylinder(cylinderRadius, cylinderLength, cylinderRadialSegments, cylinderHeightSegments, cylinderColor);
+      var cone = getCone(coneRadius, coneHeight, coneRadialSegments, coneHeightSegments, coneColor);
+
+      if (index % 2 == 0) {
+        arrowList[index].position.x = Math.floor(Math.random() * 10);
+        arrowList[index].position.y = Math.floor(Math.random() * 10);
+      } else {
+        arrowList[index].position.x = -Math.floor(Math.random() * 10);
+        arrowList[index].position.y = -Math.floor(Math.random() * 10);
+      }
+
+      if (arrowList[index].position.y >= 0) {
+        cone.position.y = arrowList[index].geometry.parameters.height / 1.7;
+      }
+      else if (arrowList[index].position.y < 0) {
+        cone.rotation.z += Math.PI;
+        cone.position.y = -arrowList[index].geometry.parameters.height / 1.7; // Positive Y
+      }
+      else {
+        cone.position.y = arrowList[index].geometry.parameters.height / 1.7; // Positive Y
+      }
+
+      cone.rotation.y += .3;
+      arrowList[index].add(cone);
+    }
+
+    return arrowList;
+  }
+
+  function getAmbientLight(intensity) {
+    var light = new THREE.AmbientLight(0xffffff, intensity);
+
+    return light;
+  }
+
+  function getDirectionalLight(intensity) {
+    var light = new THREE.DirectionalLight(0xffffff, intensity);
+    light.castShadow = true;
+
+    return light;
+  }
+
+  function getSpotLight(intensity) {
+    var light = new THREE.SpotLight(0xffffff, intensity);
+    light.castShadow = true;
+    // Treat the light.shadow.bias on a case by case bases.
+    // light.shadow.bias = 0.001;
+    // shadow.mapSize width and height default value is 1024.
+    light.shadow.mapSize.width = 256;
+    light.shadow.mapSize.height = 256;
+    return light;
+  }
+
+  function dynamicLights(light) {
+    var time = Date.now() * 0.0005;
+    light.position.x = Math.sin(time * 0.7) * 20;
+    light.position.y = Math.cos(time * 0.5) * 25;
+  }
+
+  function stretchArrowBody(arrow) {
+    return arrow.geometry.parameters.height += 0.1;
+    // arrow.geometry.verticesNeedUpdate = true;
+  }
+
+  function printShotgun(obj) {
+    console.log(obj);
+  }
+
+  // Updates the browser to allow for animation.
+  function animate(renderer, scene, camera, light) {
+    renderer.render(scene, camera);
+
+    // dynamicLights(light);
+
+    ///////////////////////////////////////////
+    // stretchArrowBody(arrow);
+    // printShotgun(arrow);
+    /////////////////////////////////////////////
+
+    requestAnimationFrame(function () {
+      // arrow.geometry.verticesNeedUpdate = true;
+      animate(renderer, scene, camera, light);
+    });
+  }
+
+  var scene = init();
+
+//   }
+// })));
