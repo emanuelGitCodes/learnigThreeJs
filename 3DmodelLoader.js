@@ -5,36 +5,33 @@ const showWireframe = false;
 const shapeShadows = false;
 const sceneColor = 0xdddddd;
 
-let numberOfLights = 2
+var cameraPositionX = 5;
+var cameraPositionY = 5;
+var cameraPositionZ = 5;
 
-const boxWidth = 1;
-const boxHeight = 1;
-const boxLength = 1;
+let numberOfLights = 2
+const sphereRadius = .1;
+const sphereWidthSegments = 8;
+const sphereHeightSegments = 8;
+const sphereColor = 0xffffff;
+
+const boxWidth = 0.5;
+const boxHeight = 0.5;
+const boxLength = 0.5;
 const boxColor = 0x00fff0;
 
 let object;
 const manager = new THREE.LoadingManager(loadModel);
-manager.onProgress = function (item, loaded, total) {
-	console.log(item, loaded, total);
-};
+// manager.onProgress = function (item, loaded, total) {
+// 	console.log(item, loaded, total);
+// };
 
 const loader = new THREE.OBJLoader(manager);
 const textureLoader = new THREE.TextureLoader(manager);
 const texture = textureLoader.load('/assets/vroom/Renders/Audi_R8_2017.1.png');
-// const texture2 = textureLoader.load('/assets/vroom/Renders/Audi_R8_2017.2.png');
-
-// let texture = new Array(5).fill(0).map((_, index) => {
-// 	return textureLoader.load('/assets/vroom/Renders/Audi_R8_2017.' + index + '.png');
-// })
-
-// const texture = [
-// 	textureLoader.loadAsync('/assets/vroom/Renders/Audi_R8_2017.1.png'),
-// 	textureLoader.loadAsync('/assets/vroom/Renders/Audi_R8_2017.2.png'),
-// 	textureLoader.loadAsync('/assets/vroom/Renders/Audi_R8_2017.5.png'),
-// 	textureLoader.loadAsync('/assets/vroom/Renders/Audi_R8_2017.7.png'),
-// 	textureLoader.loadAsync('/assets/vroom/Renders/Audi_R8_2017.9.png')
-// ];
-
+const texture2 = textureLoader.load('/assets/vroom/Renders/Audi_R8_2017.5.png');
+const calipers = textureLoader.load('/assets/vroom/Textures/redPistonsCalipers.jpg');
+const tyres = textureLoader.load('/assets/vroom/Textures/Tyre.png');
 
 function init() {
 	var gui = new dat.GUI();
@@ -47,14 +44,18 @@ function init() {
 
 	// Add Light environment
 	var lightLeft = getDirectionalLight(1);
+	var sphereLeft = getSphere(sphereRadius, sphereWidthSegments, sphereHeightSegments, sphereColor);
 	var lightRight = getDirectionalLight(1);
+	var sphereRight = getSphere(sphereRadius, sphereWidthSegments, sphereHeightSegments, sphereColor);
 
-	lightLeft.position.x = -25;
-	lightLeft.position.y = -25;
-	lightLeft.position.z = 25;
+	lightLeft.add(sphereLeft);
+	lightLeft.position.x = -15;
+	lightLeft.position.y = -15;
+	lightLeft.position.z = 15;
 
-	lightRight.position.x = 25;
-	lightRight.position.y = 25;
+	lightRight.add(sphereRight);
+	lightRight.position.x = 15;
+	lightRight.position.y = 15;
 	lightRight.position.z = 15;
 
 	gui.add(lightLeft, 'intensity', 0, 10);
@@ -80,6 +81,7 @@ function init() {
 		'assets/vroom/3D Models/Audi_R8_2017.obj',
 		function (obj) {
 			object = obj;
+			// printShotgun(obj);
 		},
 		onProgress,
 		onError
@@ -93,9 +95,10 @@ function init() {
 		1, // near clipping plane
 		1000 // far clipping plane
 	);
-	camera.position.z = 10;
-	camera.position.x = 5;
-	camera.position.y = 5;
+
+	camera.position.x = cameraPositionX;
+	camera.position.y = cameraPositionY;
+	camera.position.z = cameraPositionZ;
 	camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 	var renderer = new THREE.WebGLRenderer({ antialias: setAntialias, alpha: true });
@@ -126,6 +129,16 @@ function getBox(boxWidth, boxHeight, boxLength, boxColor) {
 	return mesh;
 }
 
+function getSphere(sphereRadius, sphereWidthSegments, sphereHeightSegments, sphereColor) {
+	var mesh = new THREE.Mesh(
+		new THREE.SphereGeometry(sphereRadius, sphereWidthSegments, sphereHeightSegments),
+		new THREE.MeshBasicMaterial({ color: sphereColor, wireframe: showWireframe, }),
+	);
+
+	mesh.castShadow = true;
+	return mesh;
+}
+
 function getAmbientLight(intensity) {
 	var light = new THREE.AmbientLight(0xffffff, intensity);
 
@@ -139,21 +152,85 @@ function getDirectionalLight(intensity) {
 	return light;
 }
 
-function loadModel() {
-	object.traverse(function (child) {
-		if (child.isMesh) {
-			// printShotgun(child);
-			child.material.map = texture;
+function getMaterialComposition(type, color) {
+	var selectedMaterial;
+	var materialOptions = {
+		color: color === undefined ? 'rgb(255, 255, 255)' : color,
+	};
 
-		}
+	switch (type) {
+		case 'basic':
+			selectedMaterial = new THREE.MeshBasicMaterial(materialOptions);
+			break;
+		case 'lambert':
+			selectedMaterial = new THREE.MeshLambertMaterial(materialOptions);
+			break;
+		// case 'phong':
+		// 	selectedMaterial = new THREE.MeshPhongMaterial(materialOptions);
+		// 	break;
+		case 'phong':
+			selectedMaterial = [
+				new THREE.MeshPhongMaterial({ map: texture, side: THREE.FrontSide }),
+				new THREE.MeshPhongMaterial({ map: texture2 }),
+				new THREE.MeshPhongMaterial({ map: calipers }),
+			];
+			break;
+		case 'standard':
+			selectedMaterial = new THREE.MeshStandardMaterial(materialOptions);
+			break;
+		default:
+			selectedMaterial = new THREE.MeshBasicMaterial(materialOptions);
+			break;
+	}
+
+	return selectedMaterial;
+}
+
+function loadModel() {
+	var materialComposition = getMaterialComposition('phong', 0xeeeeee);
+
+	object.traverse(function (child) {
+
+		child.material = materialComposition;
+		// materialComposition.bumpMap = calipers;
+		materialComposition.bumpScale = 0.2;
+		materialComposition.map = texture;
+		// materialComposition.map = calipers;
+		// materialComposition.map = tyres;
+		materialComposition.metalness = 1.0; // PURE METAL item == 1.0 and no greater
+		materialComposition.roughness = 0; // Smooth Mirror reflection == 0 and no smaller;
+		// materialComposition.roughnessMap =
+		materialComposition.wireframe = showWireframe;
+
+		// .depthTest
+		// .depthWrite when when drawing a 2D overlays
+
+		printShotgun(child);
 	});
 
 	object.position.x = 0;
 	object.position.y = 0;
 	object.position.z = 0;
-
+	printShotgun(object);
 	scene.add(object);
 }
+
+// function loadModel() {
+// 	object.traverse(function (child) {
+// 		if (child.isMesh) {
+// 			// printShotgun(child);
+// 			// child.material.map = texture;
+// 			child.material.map = texture2;
+
+// 		}
+// 	});
+
+// 	object.position.x = 0;
+// 	object.position.y = 0;
+// 	object.position.z = 0;
+
+// 	scene.add(object);
+// }
 
 function onProgress(xhr) {
 	console.log('Model downloaded: ' + Math.round((xhr.loaded / xhr.total * 100), 2) + '% loaded');
