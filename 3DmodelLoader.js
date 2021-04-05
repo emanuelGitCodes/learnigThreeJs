@@ -1,6 +1,6 @@
 const canvas = document.getElementById('board');
 
-const setAntialias = true;
+const setAntialias = false;
 const showWireframe = false;
 const shapeShadows = false;
 const sceneColor = 0xdddddd;
@@ -60,13 +60,13 @@ function init() {
 	camera.lookAt(cameraLookAtX, cameraLookAtY, cameraLookAtZ);
 
 	var renderer = new THREE.WebGLRenderer({ antialias: setAntialias, alpha: true });
-	renderer.setSize(window.innerWidth / 1.05, window.innerHeight / 1.05);
+	renderer.setSize(window.innerWidth, window.innerHeight);
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.shadowMap.enabled = true;
 
 	var controls = new THREE.OrbitControls(camera, renderer.domElement);
 	controls.target = new THREE.Vector3(cameraLookAtX, cameraLookAtY, cameraLookAtZ);
-	document.getElementById('3DModel').appendChild(renderer.domElement);
+	document.getElementById('model3D').appendChild(renderer.domElement);
 	update(renderer, scene, camera, controls);
 
 	return scene;
@@ -117,7 +117,7 @@ function createLightEnvironment(scene, gui) {
 		var sphere = getSphere(sphereRadius, sphereWidthSegments, sphereHeightSegments, sphereColor);
 		lightList[index].add(sphere);
 
-		(index % 2) === 0 ? lightList[index].position.set(15, 15, 15) : lightList[index].position.set(-15, 15, -15);
+		(index % 2) === 0 ? lightList[index].position.set(-15, 15, 15) : lightList[index].position.set(15, 15, -15);
 
 		gui.add(lightList[index], 'intensity', 0, 10);
 		gui.add(lightList[index].position, 'x', -50, 50);
@@ -137,17 +137,27 @@ function getMaterialComposition(type, color) {
 	};
 
 	switch (type) {
+		// Lower on the list equals more GPU demanding!
+		// Keep in mind if ever doing mobiles.
 		case 'basic':
 			selectedMaterial = new THREE.MeshBasicMaterial(materialOptions);
 			break;
 		case 'lambert':
+			// computes lighting only at vertices
 			selectedMaterial = new THREE.MeshLambertMaterial(materialOptions);
 			break;
 		case 'phong':
+			// computes lighting at every pixel
+			// texture focus on shininess
 			selectedMaterial = new THREE.MeshPhongMaterial(materialOptions);
 			break;
 		case 'standard':
+			// textures focus on metalness & roughness
 			selectedMaterial = new THREE.MeshStandardMaterial(materialOptions);
+			break;
+		case 'physical':
+			// textures focus on clearcoat & clearCoatRoughness
+			selectedMaterial = new THREE.MeshPhysicalMaterial(materialOptions);
 			break;
 		default:
 			selectedMaterial = new THREE.MeshBasicMaterial(materialOptions);
@@ -158,24 +168,28 @@ function getMaterialComposition(type, color) {
 }
 
 function loadModel() {
-	var materialComposition = getMaterialComposition('phong', 0xdddddd);
+	// Textures shade can change based on the color level
+	var materialComposition = getMaterialComposition('basic', 0xffffff);
 	// printShotgun(materialComposition);
 
 	object.traverse(function (child) {
 
 		child.material = materialComposition;
-		materialComposition.side = THREE.DoubleSide;
+		materialComposition.side = THREE.FrontSide; // Render outer layer only
 		materialComposition.map = new THREE.TextureLoader().load('assets/obj/cerberus/Cerberus_A.jpg');
+		materialComposition.wrapS = THREE.RepeatWrapping;
+		materialComposition.wrapT = THREE.RepeatWrapping;
+		materialComposition.magFilter = THREE.NearestFilter.
 
-		// materialComposition.bumpMap = new THREE.TextureLoader().load('assets/obj/cerberus/Cerberus_N.jpg');
-		// materialComposition.metalnessMap = new THREE.TextureLoader().load('assets/obj/cerberus/Cerberus_M.jpg');
-		// materialComposition.normalMap = new THREE.TextureLoader().load('assets/obj/cerberus/Cerberus_N.jpg');
-		// materialComposition.roughnessMap = new THREE.TextureLoader().load('assets/obj/cerberus/Cerberus_R.jpg');
+			// materialComposition.bumpMap = new THREE.TextureLoader().load('assets/obj/cerberus/Cerberus_N.jpg');
+			// materialComposition.metalnessMap = new THREE.TextureLoader().load('assets/obj/cerberus/Cerberus_M.jpg');
+			// materialComposition.normalMap = new THREE.TextureLoader().load('assets/obj/cerberus/Cerberus_N.jpg');
+			// materialComposition.roughnessMap = new THREE.TextureLoader().load('assets/obj/cerberus/Cerberus_R.jpg');
 
-		materialComposition.bumpScale = 0;
-		materialComposition.metalness = 1; // PURE METAL item == 1.0 and no greater
-		materialComposition.roughness = 0; // Smooth Mirror reflection == 0 and no smaller;
-		materialComposition.shininess = 100;
+			materialComposition.bumpScale = 0;
+		materialComposition.metalness = 0.1; // ONLY on STANDARD! 0 to 1.0 == PURE METAL item
+		materialComposition.roughness = 0.4; // ONLY on STANDARD! Smooth Mirror reflection == 0 to 1
+		materialComposition.shininess = 100; // Only on Phong! This is the opposite of shininess.
 		materialComposition.wireframe = showWireframe;
 		// .depthTest
 		// .depthWrite when when drawing a 2D overlays
