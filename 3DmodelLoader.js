@@ -23,64 +23,78 @@ const boxHeight = 0.3;
 const boxLength = 0.3;
 const boxColor = 0x00fff0;
 
-let object;
-var objLocationStr = 'assets/vroom/3D Models/Audi_R8_2017.obj';
-const mtlLoader = new THREE.MTLLoader();
-const manager = new THREE.LoadingManager(loadModel);
-const loader = new THREE.OBJLoader(manager);
-manager.onProgress = function (item, loaded, total) {
-	console.log(item, loaded, total);
-};
-
 function init() {
 	var gui = new dat.GUI();
-
 	var scene = new THREE.Scene();
+	var camera = createCamera();
+	var renderer = createRenderer();
+	var controls = new THREE.OrbitControls(camera, renderer.domElement);
 	scene.background = new THREE.Color(sceneColor);
+	controls.target = new THREE.Vector3(cameraLookAtX, cameraLookAtY, cameraLookAtZ);
 
-	var lightList = createLightEnvironment(scene, gui);
+	createLightEnvironment(scene, gui);
 
 	var box = getBox(boxWidth, boxHeight, boxLength, boxColor);
 	scene.add(box);
+	getOBJRender(loader, scene);
 
-	// mtlLoader.load('assets/vroom/3D Models/Audi_R8_2017.mtl', (mtl) => {
-	// 	printShotgun(mtl);
-	// 	mtl.preload();
 
-	loader.load(
-		objLocationStr,
-		function (obj) {
-			object = obj;
-			object.scale.x = 1;
-			object.scale.y = 1;
-			object.scale.z = 1;
-			printShotgun(obj);
-		},
-		onProgress,
-		onError
-	);
+	// var manager = new THREE.LoadingManager();
+	// // manager.addHandler('/\.dds$/i', new THREE.DDSLoader());
+
+	// var mtlLoader = new THREE.MTLLoader(manager);
+	// mtlLoader.setPath('assets/vroom/3D Models/');
+	// mtlLoader.load('Audi_R8_2017.mtl', function (materials) {
+
+	// 	materials.preload();
+
+	// 	var objLoader = new THREE.OBJLoader(manager);
+	// 	objLoader.setMaterials(materials);
+	// 	objLoader.setPath('assets/vroom/3D Models/');
+	// 	objLoader.load(
+	// 		'Audi_R8_2017.obj',
+	// 		function (object) { scene.add(object); },
+	// 		onProgress,
+	// 		onError
+	// 	);
 	// });
 
+	document.getElementById('model3D').appendChild(renderer.domElement);
+
+	update(renderer, scene, camera, controls);
+	return scene;
+}
+
+function update(renderer, scene, camera, controls) {
+	controls.update();
+	renderer.render(scene, camera);
+
+	requestAnimationFrame(function () {
+		update(renderer, scene, camera, controls);
+	});
+
+}
+
+function printShotgun(obj) {
+	console.log(obj);
+}
+
+function createCamera() {
 	// field of view || aspect ratio || near clipping plane || far clipping plane
 	var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
 	camera.position.set(cameraPositionX, cameraPositionY, cameraPositionZ);
 	camera.lookAt(cameraLookAtX, cameraLookAtY, cameraLookAtZ);
 
-	var renderer = new THREE.WebGLRenderer({ antialias: setAntialias, alpha: true });
+	return camera;
+}
+
+function createRenderer() {
+	renderer = new THREE.WebGLRenderer({ antialias: setAntialias, alpha: true });
 	renderer.setSize(window.innerWidth / 1.05, window.innerHeight / 1.05);
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.shadowMap.enabled = true;
 
-	var controls = new THREE.OrbitControls(camera, renderer.domElement);
-	controls.target = new THREE.Vector3(cameraLookAtX, cameraLookAtY, cameraLookAtZ);
-	document.getElementById('model3D').appendChild(renderer.domElement);
-	update(renderer, scene, camera, controls);
-
-	return scene;
-}
-
-function printShotgun(obj) {
-	console.log(obj);
+	return renderer;
 }
 
 function getBox(boxWidth, boxHeight, boxLength, boxColor) {
@@ -137,6 +151,14 @@ function createLightEnvironment(scene, gui) {
 	return lightList;
 }
 
+let object;
+const manager = new THREE.LoadingManager(loadModel);
+manager.onProgress = function (item, loaded, total) { console.log(item, loaded, total); };
+
+var objLocationStr = '/assets/vroom/3D Models/Audi_R8_2017.obj';
+const mtlLoader = new THREE.MTLLoader(manager);
+const loader = new THREE.OBJLoader(manager);
+
 function getMaterialComposition(type, color) {
 	var selectedMaterial;
 	var materialOptions = {
@@ -176,15 +198,12 @@ function getMaterialComposition(type, color) {
 
 function loadModel() {
 	// Textures shade can change based on the color level
-	var materialComposition = getMaterialComposition('basic', 0xcccccc);
-
-	// mtlLoader.load('/assets/vroom/3D Models/Audi_R8_2017.mtl', (mtl) => {
-	// 	object.setMaterials(mtl);
+	var materialComposition = getMaterialComposition('lambert', 0xcccccc);
 
 	object.traverse(function (child) {
 		child.material = materialComposition;
+		materialComposition.castShadow = true;
 		materialComposition.side = THREE.FrontSide; // Render outer layer only
-		// materialComposition.map = new THREE.TextureLoader().load('assets/vroom/Renders/Audi_R8_2017.1.png');
 		materialComposition.wrapS = THREE.RepeatWrapping;
 		materialComposition.wrapT = THREE.RepeatWrapping;
 		materialComposition.magFilter = THREE.NearestFilter
@@ -193,11 +212,48 @@ function loadModel() {
 		materialComposition.roughness = 0.4; // ONLY on STANDARD! Smooth Mirror reflection == 0 to 1
 		materialComposition.shininess = 100; // Only on Phong! This is the opposite of shininess.
 		materialComposition.wireframe = showWireframe;
+		// materialComposition.map = new THREE.TextureLoader().load('assets/vroom/Renders/Audi_R8_2017.1.png');
 		// .depthTest
 		// .depthWrite when when drawing a 2D overlays
 	});
-	// });
-	scene.add(object);
+
+	object.scale.x = 1;
+	object.scale.y = 1;
+	object.scale.z = 1;
+
+	return object;
+}
+
+function getOBJRender(loader, scene) {
+	loader.load(
+		objLocationStr,
+		function (obj) {
+			object = obj;
+			scene.add(object);
+		},
+		onProgress,
+		onError
+	);
+}
+
+function getMTLandOBJRender(scene) {
+	var manager = new THREE.LoadingManager();
+	const mtlLoader = new THREE.MTLLoader(manager);
+	mtlLoader.setResourcePath('assets/vroom/3D Models/');
+	mtlLoader.setPath('assets/vroom/3D Models/');
+	mtlLoader.load('Audi_R8_2017.mtl', function (materials) {
+		materials.preload();
+
+		const objLoader = new THREE.OBJLoader(manager);
+		objLoader.setMaterials(materials);
+		objLoader.setPath('assets/vroom/3D Models/');
+		objLoader.load('Audi_R8_2017.obj', function (object) {
+			scene.add(object);
+		},
+			onProgress,
+			onError,
+		);
+	});
 }
 
 function onProgress(xhr) {
@@ -207,15 +263,5 @@ function onProgress(xhr) {
 function onError(error) {
 	console.log('ERROR: Rendering Model');
 };
-
-function update(renderer, scene, camera, controls) {
-	controls.update();
-	renderer.render(scene, camera);
-
-	requestAnimationFrame(function () {
-		update(renderer, scene, camera, controls);
-	});
-
-}
 
 var scene = init();
