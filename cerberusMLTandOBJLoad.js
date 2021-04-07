@@ -23,6 +23,14 @@ const boxHeight = 0.3;
 const boxLength = 0.3;
 const boxColor = 0x00fff0;
 
+let object;
+const manager = new THREE.LoadingManager(loadModel);
+manager.onProgress = function (item, loaded, total) { console.log(item, loaded, total); };
+
+var objLocationStr = 'assets/obj/cerberus/Cerberus.obj';
+const mtlLoader = new THREE.MTLLoader(manager);
+const loader = new THREE.OBJLoader(manager);
+
 function init() {
 	var gui = new dat.GUI();
 	var scene = new THREE.Scene();
@@ -37,7 +45,6 @@ function init() {
 	var box = getBox(boxWidth, boxHeight, boxLength, boxColor);
 	scene.add(box);
 	getOBJRender(loader, scene);
-
 
 	// var manager = new THREE.LoadingManager();
 	// // manager.addHandler('/\.dds$/i', new THREE.DDSLoader());
@@ -151,14 +158,6 @@ function createLightEnvironment(scene, gui) {
 	return lightList;
 }
 
-let object;
-const manager = new THREE.LoadingManager(loadModel);
-manager.onProgress = function (item, loaded, total) { console.log(item, loaded, total); };
-
-var objLocationStr = '/assets/vroom/3D Models/Audi_R8_2017.obj';
-const mtlLoader = new THREE.MTLLoader(manager);
-const loader = new THREE.OBJLoader(manager);
-
 function getMaterialComposition(type, color) {
 	var selectedMaterial;
 	var materialOptions = {
@@ -198,7 +197,7 @@ function getMaterialComposition(type, color) {
 
 function loadModel() {
 	// Textures shade can change based on the color level
-	var materialComposition = getMaterialComposition('lambert', 0xcccccc);
+	var materialComposition = getMaterialComposition('physical', 0xcccccc);
 
 	object.traverse(function (child) {
 		child.material = materialComposition;
@@ -212,14 +211,14 @@ function loadModel() {
 		materialComposition.roughness = 0.4; // ONLY on STANDARD! Smooth Mirror reflection == 0 to 1
 		materialComposition.shininess = 100; // Only on Phong! This is the opposite of shininess.
 		materialComposition.wireframe = showWireframe;
-		// materialComposition.map = new THREE.TextureLoader().load('assets/vroom/Renders/Audi_R8_2017.1.png');
+		materialComposition.map = new THREE.TextureLoader().load('assets/obj/cerberus/Cerberus_A.jpg');
 		// .depthTest
 		// .depthWrite when when drawing a 2D overlays
 	});
 
-	object.scale.x = 1;
-	object.scale.y = 1;
-	object.scale.z = 1;
+	object.scale.x = 5;
+	object.scale.y = 5;
+	object.scale.z = 5;
 
 	return object;
 }
@@ -234,26 +233,6 @@ function getOBJRender(loader, scene) {
 		onProgress,
 		onError
 	);
-}
-
-function getMTLandOBJRender(scene) {
-	var manager = new THREE.LoadingManager();
-	const mtlLoader = new THREE.MTLLoader(manager);
-	mtlLoader.setResourcePath('assets/vroom/3D Models/');
-	mtlLoader.setPath('assets/vroom/3D Models/');
-	mtlLoader.load('Audi_R8_2017.mtl', function (materials) {
-		materials.preload();
-
-		const objLoader = new THREE.OBJLoader(manager);
-		objLoader.setMaterials(materials);
-		objLoader.setPath('assets/vroom/3D Models/');
-		objLoader.load('Audi_R8_2017.obj', function (object) {
-			scene.add(object);
-		},
-			onProgress,
-			onError,
-		);
-	});
 }
 
 function onProgress(xhr) {
