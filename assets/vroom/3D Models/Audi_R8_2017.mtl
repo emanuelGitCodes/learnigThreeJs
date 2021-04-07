@@ -51,6 +51,7 @@ Ni 1.000000
 d 1.000000
 illum 2
 
+
 newmtl Bolt(Black)
 Ns 96.078431
 Ka 1.000000 1.000000 1.000000
@@ -70,6 +71,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd /assets/vroom/Textures/Car.Brake-Disk.BMP.png
 
 newmtl BrakeDisc
 Ns 96.078431
@@ -80,6 +82,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd /assets/vroom/Textures/Car.Brake-Disk.BMP.png
 
 newmtl CarbonFibre
 Ns 96.078431
@@ -90,6 +93,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd /assets/vroom/Renders/Audi_R8_2017.2.png
 
 newmtl Centre(Black)
 Ns 96.078431
@@ -100,6 +104,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd /assets/vroom/Renders/Audi_R8_2017.2.png
 
 newmtl FarLight
 Ns 96.078431
@@ -130,6 +135,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd /assets/vroom/Renders/Audi_R8_2017.2.png
 
 newmtl GlassFrontHighlight
 Ns 96.078431
@@ -142,14 +148,11 @@ d 1.000000
 illum 2
 
 newmtl Ground
-Ns 96.078431
-Ka 1.000000 1.000000 1.000000
-Kd 0.640000 0.640000 0.640000
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.000000
-d 1.000000
-illum 2
+ Ka spectral tin.rfl
+ Kd spectral tin.rfl
+ Ks spectral tin.rfl
+ Ns 200
+ illum 3
 
 newmtl HoneyComb
 Ns 96.078431
@@ -160,6 +163,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd /assets/vroom/Renders/Audi_R8_2017.9black.png
 
 newmtl InteriorFrontHighlight
 Ns 96.078431
@@ -231,6 +235,7 @@ Ni 1.000000
 d 1.000000
 illum 2
 
+
 newmtl NumbrePlateAudiR8
 Ns 96.078431
 Ka 1.000000 1.000000 1.000000
@@ -261,6 +266,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd /assets/vroom/Renders/Audi_R8_2017.9black.png
 
 newmtl Tyre
 Ns 96.078431
@@ -271,6 +277,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd /assets/vroom/Textures/Tyre.png
 
 newmtl WheelsChrome
 Ns 96.078431
@@ -281,6 +288,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+
 
 newmtl WindscreenGlassBlack
 Ns 96.078431

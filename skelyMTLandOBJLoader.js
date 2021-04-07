@@ -3,7 +3,7 @@ const canvas = document.getElementById('model3D');
 const setAntialias = false;
 const showWireframe = false;
 const shapeShadows = false;
-const sceneColor = 0xdddddd;
+const sceneColor = 0x777777;
 
 const cameraPositionX = 2;
 const cameraPositionY = 2;
@@ -23,8 +23,8 @@ const boxHeight = 1;
 const boxLength = 1;
 const boxColor = 0x00fff0;
 
-const mtlFileStr = 'assets/vroom/3D Models/Audi_R8_2017.mtl';
-const objFileStr = 'assets/vroom/3D Models/Audi_R8_2017.obj';
+const mtlFileStr = '/assets/skelyModel/Group4.mtl';
+const objFileStr = '/assets/skelyModel/Group4.obj';
 
 const loader = new THREE.TextureLoader();
 const mtlLoader = new THREE.MTLLoader();
@@ -125,10 +125,14 @@ function getMTLandOBJRender() {
 		objLoader.setMaterials(mtl);
 		objLoader.load(objFileStr, (root) => {
 			scene.add(root);
+			objLoader.scale.x = 5;
+			objLoader.scale.y = 5;
+			objLoader.scale.z = 5;
 		},
 			onProgress,
 			onError);
 	});
+
 };
 
 function onProgress(xhr) {

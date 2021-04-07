@@ -32,12 +32,13 @@ const mtlLoader = new THREE.MTLLoader(manager);
 const loader = new THREE.OBJLoader(manager);
 
 function init() {
-	var gui = new dat.GUI();
 	var scene = new THREE.Scene();
+	scene.background = new THREE.Color(sceneColor);
+
+	var gui = new dat.GUI();
 	var camera = createCamera();
 	var renderer = createRenderer();
 	var controls = new THREE.OrbitControls(camera, renderer.domElement);
-	scene.background = new THREE.Color(sceneColor);
 	controls.target = new THREE.Vector3(cameraLookAtX, cameraLookAtY, cameraLookAtZ);
 
 	createLightEnvironment(scene, gui);
@@ -45,26 +46,6 @@ function init() {
 	var box = getBox(boxWidth, boxHeight, boxLength, boxColor);
 	scene.add(box);
 	getOBJRender(loader, scene);
-
-	// var manager = new THREE.LoadingManager();
-	// // manager.addHandler('/\.dds$/i', new THREE.DDSLoader());
-
-	// var mtlLoader = new THREE.MTLLoader(manager);
-	// mtlLoader.setPath('assets/vroom/3D Models/');
-	// mtlLoader.load('Audi_R8_2017.mtl', function (materials) {
-
-	// 	materials.preload();
-
-	// 	var objLoader = new THREE.OBJLoader(manager);
-	// 	objLoader.setMaterials(materials);
-	// 	objLoader.setPath('assets/vroom/3D Models/');
-	// 	objLoader.load(
-	// 		'Audi_R8_2017.obj',
-	// 		function (object) { scene.add(object); },
-	// 		onProgress,
-	// 		onError
-	// 	);
-	// });
 
 	document.getElementById('model3D').appendChild(renderer.domElement);
 

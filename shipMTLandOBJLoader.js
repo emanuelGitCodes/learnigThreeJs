@@ -23,8 +23,8 @@ const boxHeight = 1;
 const boxLength = 1;
 const boxColor = 0x00fff0;
 
-const mtlFileStr = 'assets/vroom/3D Models/Audi_R8_2017.mtl';
-const objFileStr = 'assets/vroom/3D Models/Audi_R8_2017.obj';
+const mtlFileStr = 'assets/spaceShip/Intergalactic_Spaceship-(Wavefront).mtl';
+const objFileStr = 'assets/spaceShip/Intergalactic_Spaceship-(Wavefront).obj';
 
 const loader = new THREE.TextureLoader();
 const mtlLoader = new THREE.MTLLoader();
